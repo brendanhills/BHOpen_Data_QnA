@@ -1,4 +1,6 @@
+*-checkpoint.*
 */__pycache__
 breedr.code-workspace
 poetry.lock
 __pycache__/*
+notebooks/mylog.log

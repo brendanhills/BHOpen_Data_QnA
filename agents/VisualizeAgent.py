@@ -31,7 +31,10 @@ from google.cloud.aiplatform import telemetry
 import vertexai 
 from utilities import PROJECT_ID, PG_REGION
 vertexai.init(project=PROJECT_ID, location=PG_REGION)
+from utilities import DESCRIPTION_MODEL
 
+import logging
+logger = logging.getLogger(__name__)
 
 class VisualizeAgent(Agent, ABC):
     """
@@ -84,8 +87,8 @@ class VisualizeAgent(Agent, ABC):
     agentType: str ="VisualizeAgent"
 
     def __init__(self):
-        self.model_id = 'gemini-1.0-pro'
-        self.model = GenerativeModel("gemini-1.0-pro-001")
+        self.model_id = DESCRIPTION_MODEL
+        self.model = GenerativeModel(DESCRIPTION_MODEL)
 
     def getChartType(self,user_question, generated_sql):
         map_prompt=f'''

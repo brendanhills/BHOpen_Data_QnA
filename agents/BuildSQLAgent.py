@@ -23,6 +23,10 @@ from utilities import PROJECT_ID, PG_REGION
 vertexai.init(project=PROJECT_ID, location=PG_REGION)
 
 
+import logging
+logger = logging.getLogger(__name__)
+
+
 class BuildSQLAgent(Agent, ABC):
     """
     An agent specialized in generating SQL queries for BigQuery or PostgreSQL databases.
@@ -94,7 +98,8 @@ class BuildSQLAgent(Agent, ABC):
             {tables_detailed_schema}
 
             """
-            # print(context_prompt)
+            
+            logger.debug(context_prompt)
 
 
         else: 
@@ -144,7 +149,7 @@ class BuildSQLAgent(Agent, ABC):
             {tables_detailed_schema}
 
             """
-            # print(context_prompt)
+            logger.debug(context_prompt)
 
         if 'gemini' in self.model_id:
             # Generation Config

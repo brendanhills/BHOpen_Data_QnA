@@ -21,6 +21,8 @@ from google.cloud.aiplatform import telemetry
 import vertexai 
 from utilities import PROJECT_ID, PG_REGION
 vertexai.init(project=PROJECT_ID, location=PG_REGION)
+import logging
+logger = logging.getLogger(__name__)
 
 class ResponseAgent(Agent, ABC):
     """
@@ -59,8 +61,8 @@ class ResponseAgent(Agent, ABC):
             Provide a natural sounding response to the user to answer the question with the SQL result provided to you.
         """
 
-
-        if self.model_id =='gemini-1.0-pro':
+        logger.debug(f"{self.model_id=}")
+        if self.model_id.startswith('gemini-1'):
             with telemetry.tool_context_manager('opendataqna-response'):
 
                 context_query = self.model.generate_content(context_prompt, stream=False)
