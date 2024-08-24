@@ -64,7 +64,7 @@ class Agent(ABC):
             with telemetry.tool_context_manager('opendataqna'):
                 self.model_config = {
                     "max_output_tokens": 8192,
-                    "temperature": 1.5,
+                    "temperature": 1.0,
                     "top_p": 0.95
                 }
 

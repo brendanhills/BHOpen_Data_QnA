@@ -233,6 +233,7 @@ class DebugSQLAgent(Agent, ABC):
                         LLM_VALIDATION=True):
         i = 0  
         STOP = False 
+        exec_result_df = pd.DataFrame()
         invalid_response = False 
         chat_session = self.init_chat(source_type,tables_schema,tables_detailed_schema,similar_sql)
         sql = query.replace("```sql","").replace("```","").replace("EXPLAIN ANALYZE ","")
