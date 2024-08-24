@@ -25,6 +25,8 @@ from vertexai.language_models import CodeGenerationModel
 from vertexai.language_models import CodeChatModel
 from vertexai.generative_models import GenerativeModel
 from vertexai.generative_models import HarmCategory,HarmBlockThreshold
+from vertexai.generative_models import Part, SafetySetting, FinishReason
+
 
 import logging
 logger = logging.getLogger(__name__)
@@ -58,15 +60,36 @@ class Agent(ABC):
             self.model = TextGenerationModel.from_pretrained('text-bison-32k')
         elif model_id == 'codechat-bison-32k':
             self.model = CodeChatModel.from_pretrained("codechat-bison-32k")
-        elif model_id.startswith('gemini-1'):
+        elif model_id.startswith('gemini'):
             with telemetry.tool_context_manager('opendataqna'):
-                self.model = GenerativeModel(model_id)
-                self.safety_settings: Optional[dict] = {
-                HarmCategory.HARM_CATEGORY_HARASSMENT: HarmBlockThreshold.BLOCK_NONE,
-                HarmCategory.HARM_CATEGORY_HATE_SPEECH: HarmBlockThreshold.BLOCK_NONE,
-                HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT: HarmBlockThreshold.BLOCK_NONE,
-                HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT: HarmBlockThreshold.BLOCK_NONE,
-        }
+                self.model_config = {
+                    "max_output_tokens": 8192,
+                    "temperature": 1.5,
+                    "top_p": 0.95
+                }
+
+                self.safety_settings = [
+                    SafetySetting(
+                        category=SafetySetting.HarmCategory.HARM_CATEGORY_HATE_SPEECH,
+                        threshold=SafetySetting.HarmBlockThreshold.BLOCK_ONLY_HIGH
+                    ),
+                    SafetySetting(
+                        category=SafetySetting.HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT,
+                        threshold=SafetySetting.HarmBlockThreshold.BLOCK_ONLY_HIGH
+                    ),
+                    SafetySetting(
+                        category=SafetySetting.HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT,
+                        threshold=SafetySetting.HarmBlockThreshold.BLOCK_ONLY_HIGH
+                    ),
+                    SafetySetting(
+                        category=SafetySetting.HarmCategory.HARM_CATEGORY_HARASSMENT,
+                        threshold=SafetySetting.HarmBlockThreshold.BLOCK_ONLY_HIGH
+                    )
+                ]
+
+                
+                self.model = GenerativeModel(model_id, generation_config=self.model_config)
+
         else:
             raise ValueError(f"Please specify a compatible model.  Passed Model ID: {model_id}")
 

@@ -88,7 +88,7 @@ class ValidateSQLAgent(Agent, ABC):
         logger.debug(f"{self.model_id=}")
 
         if self.model_id.startswith('gemini-1'):
-            context_query = self.model.generate_content(context_prompt, stream=False)
+            context_query = self.model.generate_content(context_prompt,safety_settings=self.safety_settings, stream=False)
             generated_sql = str(context_query.candidates[0].text)
 
         else:

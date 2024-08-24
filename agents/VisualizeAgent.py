@@ -89,6 +89,12 @@ class VisualizeAgent(Agent, ABC):
     def __init__(self):
         self.model_id = DESCRIPTION_MODEL
         self.model = GenerativeModel(DESCRIPTION_MODEL)
+        self.safety_settings: Optional[dict] = {
+                HarmCategory.HARM_CATEGORY_HARASSMENT: HarmBlockThreshold.BLOCK_NONE,
+                HarmCategory.HARM_CATEGORY_HATE_SPEECH: HarmBlockThreshold.BLOCK_NONE,
+                HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT: HarmBlockThreshold.BLOCK_NONE,
+                HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT: HarmBlockThreshold.BLOCK_NONE,
+        }
 
     def getChartType(self,user_question, generated_sql):
         map_prompt=f'''
@@ -160,7 +166,7 @@ class VisualizeAgent(Agent, ABC):
 
         
       '''
-        chart_type=self.model.generate_content(map_prompt, stream=False).candidates[0].text
+        chart_type=self.model.generate_content(map_prompt, safety_settings=self.safety_settings,stream=False).candidates[0].text
         # print(chart_type)
         # chart_type = model.predict(map_prompt, max_output_tokens = 1024, temperature= 0.2).candidates[0].text
         return chart_type.replace("\n", "").replace("```", "").replace("json", "").replace("```html", "").replace("```", "").replace("js\n","").replace("json\n","").replace("python\n","").replace("javascript","")
