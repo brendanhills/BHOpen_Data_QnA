@@ -24,7 +24,7 @@ from embeddings import retrieve_embeddings, store_schema_embeddings, setup_kgq_t
 from utilities import (PG_SCHEMA, PG_REGION, PG_INSTANCE, PG_DATABASE, PG_USER, PG_PASSWORD, 
                        BQ_DATASET_NAME, BQ_REGION, 
                        EXAMPLES, LOGGING, VECTOR_STORE, DATA_SOURCE, PROJECT_ID, 
-                       BQ_OPENDATAQNA_DATASET_NAME, BQ_TABLE_LIST) 
+                       BQ_OPENDATAQNA_DATASET_NAME, BQ_TABLE_LIST, EMBEDDING_CHUNK_SIZE, DESCRIPTION_LENGTH) 
 import subprocess
 import time
 

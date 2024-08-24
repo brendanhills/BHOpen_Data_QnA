@@ -15,6 +15,8 @@
 
 from abc import ABC
 from .core import Agent 
+from utilities import DESCRIPTION_LENGTH
+
 import logging
 logger = logging.getLogger(__name__)
 
@@ -63,26 +65,30 @@ class DescriptionAgent(Agent, ABC):
         for index, row in table_desc_df.iterrows():
             if row['table_description'] is None or row['table_description']=='NA':
                 q=f"table_name == '{row['table_name']}' and table_schema == '{row['table_schema']}'"
+                table_metadata = {table_desc_df.query(q).to_markdown(index=False)}
+                column_metadata = column_name_df.query(q).to_markdown(index=False)
                 logger.info(f"Generate description for table {row['project_id']}.{row['table_schema']}.{row['table_name']}")
                 if source=='bigquery':
                     context_prompt = f"""
-                        Generate table description short and crisp for the table {row['project_id']}.{row['table_schema']}.{row['table_name']}
-                        Remember that these desciprtion should help LLMs to help build better SQL for any quries related to this table.
+                        You are acting as a skilled data analyst.
+                        Generate a short and precise table description for the table {row['project_id']}.{row['table_schema']}.{row['table_name']}
+                        This description should help a LLM to write good quality SQL code to answer any natural language questions related to this table.
                         Parameters:
-                        - column metadata: {column_name_df.query(q).to_markdown(index = False)}
-                        - table metadata: {table_desc_df.query(q).to_markdown(index = False)}
+                        - column metadata: {column_metadata}
+                        - table metadata: {table_metadata}
                         
-                        DO NOT generate description more than two lines
+                        DO NOT generate a description which is longer than {DESCRIPTION_LENGTH} sentences.
                     """
 
                 else:
                      context_prompt = f"""
-                        Generate table description short and crisp for the table {row['table_schema']}.{row['table_name']}
-                        Remember that these desciprtion should help LLMs to help build better SQL for any quries related to this table.
+                        You are acting as a skilled data analyst.
+                        Generate a short and precise table description for the table {row['table_schema']}.{row['table_name']}
+                        This description should help a LLM to write good quality SQL code to answer any natural language questions related to this table.
                         Parameters:
-                        - column metadata: {column_name_df.query(q).to_markdown(index = False)}
-                        - table metadata: {table_desc_df.query(q).to_markdown(index = False)}
-                        DO NOT generate description more than two lines
+                        - column_metadata: {column_metadata}
+                        - table_metadata: {table_metadata}
+                        DO NOT generate a description which is longer than {DESCRIPTION_LENGTH} sentences
                     """
                      
                 table_desc_df.at[index,'table_description']=self.generate_llm_response(context_prompt)
@@ -96,39 +102,37 @@ class DescriptionAgent(Agent, ABC):
             # print(row['column_description'])
             if row['column_description'] is None or row['column_description']=='':
                 q=f"table_name == '{row['table_name']}' and table_schema == '{row['table_schema']}'"
+                table_metadata = {table_desc_df.query(q).to_markdown(index=False)}
                 logger.info(f"Generate description for column  {row['project_id']}.{row['table_schema']}.{row['table_name']}.{row['column_name']} ")
                 
                 if source=='bigquery':
                     context_prompt = f"""
-                    Generate short and crisp description for the column {row['project_id']}.{row['table_schema']}.{row['table_name']}.{row['column_name']}
-
-                    Remember that this description should help LLMs to help generate better SQL for any queries related to these columns.
-
-                    Consider the below information to generate a good comment
-
+                    You are acting as a skilled data analyst.
+                    Generate a short and precise description for the column {row['column_name']} in the table  {row['project_id']}.{row['table_schema']}.{row['table_name']}
+                    This description should help a LLM to write good quality SQL code to answer any natural language questions related to this column in this table.
+                    Use the following information to create a good description 
                     Name of the column : {row['column_name']}
                     Data type of the column is : {row['data_type']}
-                    Details of the table of this column are below:
-                    {table_desc_df.query(q).to_markdown(index=False)}
+                    Details of the table of this column are: {table_metadata}
                     Column Contraints of this column are : {row['column_constraints']}
 
-                    DO NOT generate description more than two lines
+                    DO NOT generate a description which is longer than {DESCRIPTION_LENGTH} sentences
                 """
                 else:
                     context_prompt = f"""
-                    Generate short and crisp description for the column {row['table_schema']}.{row['table_name']}.{row['column_name']}
-                    Remember that this description should help LLMs to help generate better SQL for any queries related to these columns.
-                    Consider the below information to generate a good comment
+                    You are acting as a skilled data analyst.
+                    Generate short and crisp description for the column {row['column_name']} in the table {row['table_schema']}.{row['table_name']}.
+                    This description should help a LLM to write good quality SQL code to answer any natural language questions related to this column in this table.
+                    Use the following information to create a good description 
                     Name of the column : {row['column_name']}
                     Data type of the column is : {row['data_type']}
-                    Details of the table of this column are below:
-                    {table_desc_df.query(q).to_markdown(index=False)}
+                    Details of the table of this column are: {table_metadata}
                     Column Contraints of this column are : {row['column_constraints']}
-                    DO NOT generate description more than two lines
+                    DO NOT generate a description that is longer than {DESCRIPTION_LENGTH} sentences
                 """                
 
                 column_name_df.at[index,'column_description']=self.generate_llm_response(prompt=context_prompt)
-                # print(row['column_description'])
+                logger.debug(f"Column description: {column_name_df.at[index,'column_description']}")
                 llm_generated=llm_generated+1
         print("\nLLM generated "+ str(llm_generated) + " Column Descriptions")
         return table_desc_df,column_name_df

@@ -54,6 +54,9 @@ VECTOR_EMBEDDING_MODEL = config['CONFIG']['VECTOR_EMBEDDING_MODEL']
 DESCRIPTION_MODEL = config['CONFIG']['DESCRIPTION_MODEL']
 DATA_SOURCE = config['CONFIG']['DATA_SOURCE'] 
 VECTOR_STORE = config['CONFIG']['VECTOR_STORE']
+EMBEDDING_CHUNK_SIZE = int(config['CONFIG']['EMBEDDING_CHUNK_SIZE'])
+DESCRIPTION_LENGTH = int(config['CONFIG']['DESCRIPTION_LENGTH'])
+
 
 #CACHING = config.getboolean('CONFIG','CACHING')
 #DEBUGGING = config.getboolean('CONFIG','DEBUGGING')
@@ -100,6 +103,8 @@ __all__ = ["EMBEDDING_MODEL",
            "BQ_DATASET_NAME",
            "BQ_OPENDATAQNA_DATASET_NAME",
            "BQ_LOG_TABLE_NAME",
-           "BQ_TABLE_LIST",
+           "BQ_TABLE_LIST"
+           "EMBEDDING_CHUNK_SIZE",
+           "DESCRIPTION_LENGTH",
            "root_dir",
            "save_config"]

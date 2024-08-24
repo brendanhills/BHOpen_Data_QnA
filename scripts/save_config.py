@@ -37,24 +37,26 @@ def is_root_dir():
 
 
 def save_config(embedding_model,
-                vector_embedding_model,
-                description_model,
-                data_source, 
-                vector_store,
-                logging,
-                kgq_examples,
-                PROJECT_ID,
-                pg_region, 
-                pg_instance, 
-                pg_database, 
-                pg_user, 
-                pg_password, 
-                pg_schema, 
-                bq_dataset_region, 
-                bq_dataset_name, 
-                bq_opendataqna_dataset_name, 
-                bq_log_table_name,
-                bq_table_list): 
+                vector_embedding_model=None,
+                description_model="gemini-1.5-pro-001",
+                data_source="bigquery", 
+                vector_store="bigquery-vector",
+                logging=False,
+                kgq_examples=True,
+                project_id=None,
+                pg_region=None, 
+                pg_instance=None, 
+                pg_database=None, 
+                pg_user=None, 
+                pg_password=None, 
+                pg_schema=None, 
+                bq_dataset_region=None, 
+                bq_dataset_name=None, 
+                bq_opendataqna_dataset_name="opendataqna", 
+                bq_log_table_name="audit_log_table",
+                bq_table_list=None, 
+                embedding_chunk_size="10",
+                description_length="2"): 
     
     config = configparser.ConfigParser()
 
@@ -70,12 +72,16 @@ def save_config(embedding_model,
         raise FileNotFoundError("config.ini not found in current or parent directories.")
 
 
-    config['GCP']['PROJECT_ID'] = PROJECT_ID
+    config['GCP']['PROJECT_ID'] = project_id
     config['CONFIG']['DATA_SOURCE'] = data_source
     config['CONFIG']['VECTOR_STORE'] = vector_store
     config['CONFIG']['EMBEDDING_MODEL'] = embedding_model
     config['CONFIG']['VECTOR_EMBEDDING_MODEL'] = vector_embedding_model
     config['CONFIG']['DESCRIPTION_MODEL'] = description_model
+    config['CONFIG']['EMBEDDING_CHUNK_SIZE'] = embedding_chunk_size
+    config['CONFIG']['DESCRIPTION_LENGTH'] = description_length
+
+
 
 
     # Save the parameters based on Data Source and Vector Store Choices

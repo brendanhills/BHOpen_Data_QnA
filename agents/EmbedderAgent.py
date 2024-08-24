@@ -14,8 +14,9 @@
 
 
 from abc import ABC
+import json
 from .core import Agent 
-from vertexai.language_models import TextEmbeddingModel
+from vertexai.language_models import TextEmbeddingModel,TextEmbeddingInput
 from utilities import VECTOR_EMBEDDING_MODEL
 
 import logging
@@ -57,6 +58,7 @@ class EmbedderAgent(Agent, ABC):
         if mode == 'vertex': 
             self.mode = mode 
             self.model = TextEmbeddingModel.from_pretrained(embeddings_model)
+            self.task = "RETRIEVAL_DOCUMENT"
 
         elif mode == 'lang-vertex': 
             self.mode = mode 
@@ -69,27 +71,39 @@ class EmbedderAgent(Agent, ABC):
 
 
 
-    def create(self, question): 
+    def create(self, text): 
         """Text embedding with a Large Language Model."""
 
         if self.mode == 'vertex': 
-            if isinstance(question, str): 
-                embeddings = self.model.get_embeddings([question])
+            if isinstance(text, str): 
+                inputs = [TextEmbeddingInput(text, self.task)]
+                embeddings = self.model.get_embeddings(inputs)
                 for embedding in embeddings:
                     vector = embedding.values
                 return vector
             
-            elif isinstance(question, list):  
+            elif isinstance(text, list):  
                 vector = list() 
-                for q in question: 
-                    embeddings = self.model.get_embeddings([q])
+                for t in text: 
+                    inputs = [TextEmbeddingInput(t, self.task)]
+                    embeddings = self.model.get_embeddings(inputs)
 
                     for embedding in embeddings:
                         vector.append(embedding.values) 
                 return vector
             
-            else: raise ValueError('Input must be either str or list')
+            elif isinstance(text, dict):
+                # Assuming the JSON is a single string, extract the content
+                text_content = text.get('content', '')
+                inputs = [TextEmbeddingInput(text_content, self.task)]
+                embeddings = self.model.get_embeddings(inputs)
+                for embedding in embeddings:
+                    vector = embedding.values
+                return vector
+
+            else: raise ValueError('Input must be either str, list or dict')
+            
 
         elif self.mode == 'lang-vertex': 
-            vector = self.embeddings_service.embed_documents(question)
+            vector = self.embeddings_service.embed_documents(text)
             return vector           

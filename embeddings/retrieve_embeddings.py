@@ -12,18 +12,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-
-
-import re
-import io
-import sys 
+import json
 import pandas as pd
 from dbconnectors import pgconnector,bqconnector
 from agents import EmbedderAgent, ResponseAgent, DescriptionAgent
-from utilities import EMBEDDING_MODEL, DESCRIPTION_MODEL
+from utilities import EMBEDDING_MODEL, DESCRIPTION_MODEL, EMBEDDING_CHUNK_SIZE
+
+import logging
+logger = logging.getLogger(__name__)
 
 embedder = EmbedderAgent(EMBEDDING_MODEL)
-# responder = ResponseAgent('gemini-1.0-pro')
+# responder = ResponseAgent(DESCRIPTION_MODEL)
 descriptor = DescriptionAgent(DESCRIPTION_MODEL)
 
 
@@ -80,7 +79,8 @@ def retrieve_embeddings(SOURCE, SCHEMA="public", table_names = None):
             r = {"table_schema": cur_table_schema,"table_name": cur_table_name,"content": table_detailed_description}
             table_details_chunked.append(r)
 
-        table_details_embeddings = get_embedding_chunked(table_details_chunked, 10)
+        table_details_embeddings = get_embedding_chunked(table_details_chunked, EMBEDDING_CHUNK_SIZE) 
+        logger.debug(f'Table details embedding df: {table_details_embeddings.describe()}')
 
 
         ### COLUMN EMBEDDING ###
@@ -111,7 +111,7 @@ def retrieve_embeddings(SOURCE, SCHEMA="public", table_names = None):
 
 
     elif SOURCE=='bigquery':
-
+        logger.info(f"Getting generating embeddings for tables {table_names}")
         table_schema_sql = bqconnector.return_table_schema_sql(SCHEMA, table_names=table_names)
         table_desc_df = bqconnector.retrieve_df(table_schema_sql)
 
@@ -122,25 +122,32 @@ def retrieve_embeddings(SOURCE, SCHEMA="public", table_names = None):
         
         #TABLE EMBEDDINGS
         table_details_chunked = []
-
+        logger.info(f"Generating embeddings from descriptions with chunk size {EMBEDDING_CHUNK_SIZE}")
+        
         for index_aug, row_aug in table_desc_df.iterrows():
             cur_project_name =str(row_aug['project_id'])
             cur_table_name = str(row_aug['table_name'])
             cur_table_schema = str(row_aug['table_schema'])
             curr_col_names = str(row_aug['table_columns'])
             curr_tbl_desc = str(row_aug['table_description'])
-
-
+            
             table_detailed_description=f"""
             Full Table Name : {cur_project_name}.{cur_table_schema}.{cur_table_name} |
             Table Columns List: [{curr_col_names}] |
             Table Description: {curr_tbl_desc} """
+            
+
+            # table_detailed_description = {
+            # "full_table_name": f"{cur_project_name}.{cur_table_schema}.{cur_table_name}",
+            # "table_columns_list": curr_col_names,
+            # "table_description": curr_tbl_desc
+            # }
+
 
             r = {"table_schema": cur_table_schema,"table_name": cur_table_name,"content": table_detailed_description}
             table_details_chunked.append(r)
 
-        table_details_embeddings = get_embedding_chunked(table_details_chunked, 10)
-
+        table_details_embeddings = get_embedding_chunked(table_details_chunked, EMBEDDING_CHUNK_SIZE)
 
         ### COLUMN EMBEDDING ###
         """
@@ -167,6 +174,14 @@ def retrieve_embeddings(SOURCE, SCHEMA="public", table_names = None):
             Data type: {curr_col_datatype}|
             Column description: {curr_col_description}|
             Column Constraints: {curr_col_constraints} """
+
+            # column_detailed_description= {
+            # "column_name": {curr_col_name},
+            # "full_table_name" : f"{cur_project_name}.{cur_table_schema}.{cur_table_name}",
+            # "data_type": {curr_col_datatype},
+            # "column_description": {curr_col_description},
+            # "column_constraints": {curr_col_constraints} 
+            # }
 
             r = {"table_schema": cur_table_owner,"table_name": cur_table_name,"column_name":curr_column_name, "content": column_detailed_description}
             column_details_chunked.append(r)

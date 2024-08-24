@@ -159,6 +159,8 @@ async def store_schema_embeddings(table_details_embeddings,
         for _, row in table_details_embeddings.iterrows():
             table_name_list.append("'"+row["table_name"]+"'")
         table_name_string = ",".join(table_name_list)
+        logger.debug(f'Deleting embeddings for tables {table_name_string}')
+
         query_string = f''' DELETE FROM `{project_id}.{schema}.table_details_embeddings` WHERE table_schema = '{row["table_schema"]}' AND table_name IN( {table_name_string} )'''
 
         logger.info(f'Clean up table_details_embeddings: {query_string=}')
@@ -175,6 +177,7 @@ async def store_schema_embeddings(table_details_embeddings,
         column_query_string = f'''DELETE FROM `{project_id}.{schema}.tablecolumn_details_embeddings` WHERE table_schema = '{row["table_schema"]}' AND table_name IN( {table_name_string}) '''
         logger.info(f'Clean up tablecolumn_details_embeddings: {column_query_string=}')
         logger.debug(column_query_string)
+
         client.query_and_wait(column_query_string)
 
         #job_config = bigquery.LoadJobConfig(write_disposition="WRITE_TRUNCATE")

@@ -63,10 +63,10 @@ class BuildSQLAgent(Agent, ABC):
         if source_type=='bigquery':
             not_related_msg="select `Question is not related to the dataset` as unrelated_answer"
             context_prompt = f"""
-            You are a BigQuery SQL guru. Write a SQL comformant query for Bigquery that answers the following question while using the provided context to correctly refer to the BigQuery tables and the needed column names.
+            You are a BigQuery SQL expert. Write a SQL comformant query for Bigquery that answers the following question. Use the provided context to correctly refer to the BigQuery tables and the needed column names.
 
             Guidelines:
-            - Join as minimal tables as possible.
+            - Try to minimize tables joins.
             - When joining tables ensure all join columns are the same data_type.
             - Analyze the database and the table schema provided as parameters and undestand the relations (column and table relations).
             - Use always SAFE_CAST. If performing a SAFE_CAST, use only Bigquery supported datatypes.
